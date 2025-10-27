@@ -32,7 +32,7 @@ class Proyecto:
             'estado': self._estado
         }
 
-mi_proyecto.id = 5  # Asignación del ID después de la creación
+Proyecto.id = 5  # Asignación del ID después de la creación
 
 class Tarea:
     """

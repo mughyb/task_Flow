@@ -4,7 +4,6 @@ import os
 
 DATABASE_NAME = 'tareas.db'
 
-
 def get_connection():
     conn = sqlite3.connect(DATABASE_NAME)
     conn.row_factory = sqlite3.Row
@@ -12,7 +11,7 @@ def get_connection():
 
 
 def crear_tablas():
-    conn.get_connection()
+    conn = get_connection()
     cursor = conn.cursor()
 
     # Tabla proyectos
@@ -44,7 +43,7 @@ def crear_tablas():
     try:
         cursor.execute(
             "INSERT INTO proyectos (id, nombre, descripcion, estado) VALUES (0, 'Tareas Generales', 'Tareas sin clasificar', 'Activo')")
-    except sqlite.IntegrityError:
+    except sqlite3.IntegrityError:
         pass
 
     conn.commit()
@@ -83,6 +82,37 @@ class DBManager:
             for fila in filas
         ]
         return proyectos
+    def obtener_tareas(self, estado =None):
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        sql = "SELECT * FROM tareas"
+        params = []
+
+        if estado:
+            sql += "WHERE estado ?"
+            params.append(estado)
+
+        sql += "ORDER BY fecha_limite ASC"
+
+        cursor.execute(sql,params)
+        filas = cursor.fetchall()
+        conn.close()
+
+        tareas = []
+        for fila in filas:
+            t = Tarea(
+                titulo=fila['titulo'],
+                fecha_limite=fila['fecha_limite'],
+                prioridad=fila['prioridad'],
+                proyecto_id=fila['proyecto_id'],
+                estado=fila['estado'],
+                descripcion=fila['descripcion'],
+                fecha_creacion=fila['fecha_creacion'],
+                id=fila['id']
+            )
+            tareas.append(t)
+        return tareas
 
 
 if __name__ == '__main__':
