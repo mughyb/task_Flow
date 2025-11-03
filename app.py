@@ -2,8 +2,10 @@ from flask import Flask, render_template, request, redirect, url_for
 from src.database import DBManager
 from src.modelos import Tarea, Proyecto
 
+
 app = Flask(__name__)
 db_manager = DBManager()
+
 
 @app.route('/')
 def index():
@@ -14,6 +16,7 @@ def index():
                            tareas=tareas_pendientes,
                            proyectos=proyectos)
 
+
 @app.route('/crear', methods=['GET', 'POST'])
 def crear_tarea_web():
 
@@ -22,7 +25,7 @@ def crear_tarea_web():
     if request.method == 'POST':
         titulo = request.form.get('titulo')
         descripcion = request.form.get('descripcion')
-        limite = request.form.get('limite')
+        limite = request.form.get('fecha_limite')
         prioridad = request.form.get('prioridad')
 
         proyecto_id = int(request.form.get('proyecto_id'))
@@ -30,20 +33,27 @@ def crear_tarea_web():
         nueva_tarea = Tarea(
             titulo=titulo,
             descripcion=descripcion,
-            fecha_limite = limite,
-            prioidad=prioridad,
+            fecha_limite=limite,
+            prioridad=prioridad,
             proyecto_id=proyecto_id
         )
 
         db_manager.crear_tarea(nueva_tarea)
 
-
         return redirect(url_for('index'))
-    
+
     return render_template('formulario_tarea.html', proyectos=proyectos)
 
-if __name__=='main':
 
-    db_manager.crear_tabla()
-    print("Iniciando servidor")
+@app.route('/completar/<int:tarea_id>')
+def completar_tarea(tarea_id):
+    db_manager.actualizar_tarea_estado(tarea_id, "Completada")
+
+    return redirect(url_for('index'))
+
+
+if __name__ == '__main__':
+    # Las tablas ya se crean automáticamente en el __init__ de DBManager
+
+    # Corremos Flask
     app.run(debug=True)

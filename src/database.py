@@ -4,6 +4,7 @@ import os
 
 DATABASE_NAME = 'tareas.db'
 
+
 def get_connection():
     conn = sqlite3.connect(DATABASE_NAME)
     conn.row_factory = sqlite3.Row
@@ -82,7 +83,8 @@ class DBManager:
             for fila in filas
         ]
         return proyectos
-    def obtener_tareas(self, estado =None):
+
+    def obtener_tareas(self, estado=None):
         conn = get_connection()
         cursor = conn.cursor()
 
@@ -90,12 +92,12 @@ class DBManager:
         params = []
 
         if estado:
-            sql += "WHERE estado ?"
+            sql += " WHERE estado = ?"
             params.append(estado)
 
-        sql += "ORDER BY fecha_limite ASC"
+        sql += " ORDER BY fecha_limite ASC"
 
-        cursor.execute(sql,params)
+        cursor.execute(sql, params)
         filas = cursor.fetchall()
         conn.close()
 
@@ -114,6 +116,22 @@ class DBManager:
             tareas.append(t)
         return tareas
 
+    def actualizar_tarea_estado(self, tarea_id: int, nuevo_estado: str) -> bool:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            UPDATE tareas
+            SET estado=?
+            WHERE id=?
+        """, (nuevo_estado, tarea_id))
+
+        updated = cursor.rowcount > 0
+
+        conn.commit()
+        conn.close()
+        return updated
+
 
 if __name__ == '__main__':
     # Bloque de prueba para la clase
@@ -122,17 +140,18 @@ if __name__ == '__main__':
         print(f"Base de datos {DATABASE_NAME} eliminada.")
 
     crear_tablas()
-    print(f"Base de datos {DATABASE_NAME} y tablas inicializadas correctamente.")
-    
+    print(
+        f"Base de datos {DATABASE_NAME} y tablas inicializadas correctamente.")
+
     # Prueba del CRUD (CREATE)
     manager = DBManager()
     tarea_prueba = Tarea(
-        titulo="Completar Ejercicio de CRUD", 
-        fecha_limite="2025-10-30", 
-        prioridad="Alta", 
+        titulo="Completar Ejercicio de CRUD",
+        fecha_limite="2025-10-30",
+        prioridad="Alta",
         proyecto_id=0,
         descripcion="Implementar el módulo database.py"
     )
-    
+
     tarea_creada = manager.crear_tarea(tarea_prueba)
     print(f"Tarea creada y ID asignado: {tarea_creada.id}")
